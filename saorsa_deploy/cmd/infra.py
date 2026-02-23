@@ -96,7 +96,6 @@ def cmd_infra(args):
             f"[bold green]All {len(results)} region(s) provisioned successfully.[/bold green]"
         )
 
-    # Save deployment state to S3 for later use by the destroy command
     terraform_variables = {
         "name": args.name,
         "vm_count": str(args.vm_count),
@@ -104,7 +103,7 @@ def cmd_infra(args):
         "attached_volume_size": str(args.attached_volume_size),
     }
     try:
-        save_deployment_state(args.name, region_pairs, terraform_variables)
+        save_deployment_state(args.name, region_pairs, terraform_variables, bootstrap["ip_address"])
         console.print("[dim]Deployment state saved to S3.[/dim]")
     except Exception as e:
         console.print(f"[yellow]Warning: Failed to save deployment state: {e}[/yellow]")

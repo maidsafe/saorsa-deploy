@@ -26,6 +26,7 @@ class TestSaveDeploymentState:
             name="DEV-01",
             regions=[("digitalocean", "lon1"), ("digitalocean", "nyc1")],
             terraform_variables={"name": "DEV-01", "vm_count": "2", "node_count": "5"},
+            bootstrap_ip="143.198.100.50",
         )
 
         mock_s3.put_object.assert_called_once()
@@ -38,16 +39,29 @@ class TestSaveDeploymentState:
         assert body["name"] == "DEV-01"
         assert body["regions"] == [["digitalocean", "lon1"], ["digitalocean", "nyc1"]]
         assert body["terraform_variables"]["vm_count"] == "2"
+        assert body["bootstrap_ip"] == "143.198.100.50"
 
     def test_regions_stored_as_lists(self, mock_s3):
         save_deployment_state(
             name="TEST",
             regions=[("digitalocean", "ams3")],
             terraform_variables={},
+            bootstrap_ip="10.0.0.1",
         )
 
         body = json.loads(mock_s3.put_object.call_args.kwargs["Body"])
         assert body["regions"] == [["digitalocean", "ams3"]]
+
+    def test_stores_bootstrap_ip(self, mock_s3):
+        save_deployment_state(
+            name="DEV-01",
+            regions=[("digitalocean", "lon1")],
+            terraform_variables={"name": "DEV-01"},
+            bootstrap_ip="143.198.100.50",
+        )
+
+        body = json.loads(mock_s3.put_object.call_args.kwargs["Body"])
+        assert body["bootstrap_ip"] == "143.198.100.50"
 
 
 class TestLoadDeploymentState:

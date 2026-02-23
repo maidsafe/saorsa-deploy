@@ -15,12 +15,14 @@ def save_deployment_state(
     name: str,
     regions: list[tuple[str, str]],
     terraform_variables: dict[str, str],
+    bootstrap_ip: str,
 ) -> None:
-    """Save deployment metadata to S3 for later use by the destroy command."""
+    """Save deployment metadata to S3 for later use by other commands."""
     state = {
         "name": name,
         "regions": [[provider, region] for provider, region in regions],
         "terraform_variables": terraform_variables,
+        "bootstrap_ip": bootstrap_ip,
     }
     client = _get_s3_client()
     client.put_object(

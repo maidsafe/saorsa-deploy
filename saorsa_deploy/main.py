@@ -46,6 +46,43 @@ def main():
         help="Number of VMs per provider per region",
     )
 
+    provision_genesis_parser = subparsers.add_parser(
+        "provision-genesis", help="Provision the genesis node"
+    )
+    provision_genesis_parser.add_argument(
+        "--ip-version",
+        type=str,
+        choices=["v4", "v6"],
+        help="IP version the node will run with (v4 or v6)",
+    )
+    provision_genesis_parser.add_argument(
+        "--log-level",
+        type=str,
+        help="Logging level the node will run with",
+    )
+    provision_genesis_parser.add_argument(
+        "--name",
+        type=str,
+        required=True,
+        help="Deployment name (must match the name used with infra command)",
+    )
+    provision_genesis_parser.add_argument(
+        "--port",
+        type=int,
+        help="Port the node will run with",
+    )
+    provision_genesis_parser.add_argument(
+        "--ssh-key-path",
+        type=str,
+        default="~/.ssh/id_rsa",
+        help="Path to SSH key for provisioning (default: ~/.ssh/id_rsa)",
+    )
+    provision_genesis_parser.add_argument(
+        "--testnet",
+        action="store_true",
+        help="Run the node with the --testnet flag",
+    )
+
     destroy_parser = subparsers.add_parser("destroy", help="Destroy testnet infrastructure")
     destroy_parser.add_argument(
         "--force",
@@ -69,6 +106,10 @@ def main():
         from saorsa_deploy.cmd.infra import cmd_infra
 
         cmd_infra(args)
+    elif args.command == "provision-genesis":
+        from saorsa_deploy.cmd.provision_genesis import cmd_provision_genesis
+
+        cmd_provision_genesis(args)
     elif args.command == "destroy":
         from saorsa_deploy.cmd.destroy import cmd_destroy
 
