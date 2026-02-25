@@ -6,19 +6,9 @@ from rich.console import Console
 from saorsa_deploy.bootstrap import create_bootstrap_vm
 from saorsa_deploy.executor import execute_terraform_runs
 from saorsa_deploy.providers import PROVIDERS, resolve_regions
+from saorsa_deploy.resources import get_resources_dir
 from saorsa_deploy.state import save_deployment_state
 from saorsa_deploy.terraform import TerraformRunConfig
-
-
-def _find_resources_dir() -> Path:
-    """Locate the resources directory relative to the package."""
-    current = Path(__file__).resolve().parent
-    for _ in range(5):
-        candidate = current / "resources"
-        if candidate.is_dir():
-            return candidate
-        current = current.parent
-    raise FileNotFoundError("Could not find resources directory")
 
 
 def cmd_infra(args):
@@ -55,9 +45,8 @@ def cmd_infra(args):
         console.print(f"[bold red]Error:[/bold red] {e}")
         sys.exit(1)
 
-    resources_dir = _find_resources_dir()
-    project_root = resources_dir.parent
-    workspace_base = project_root / ".saorsa" / "workspaces"
+    resources_dir = get_resources_dir()
+    workspace_base = Path.cwd() / ".saorsa" / "workspaces"
 
     configs = []
     for provider_name, region in region_pairs:

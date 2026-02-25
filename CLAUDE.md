@@ -28,12 +28,13 @@ saorsa_deploy/
     destroy.py          # destroy command implementation
   bootstrap.py          # Bootstrap VM creation/destruction via DO API
   providers.py          # Provider/region config and resolution
+  resources.py          # Resource directory discovery (importlib.resources)
   state.py              # Deployment state persistence (S3)
   terraform.py          # Terraform workspace prep, init, apply, destroy
   executor.py           # Parallel execution with rich progress display
-resources/
-  digitalocean/         # Terraform manifests (one directory per provider)
-    main.tf, variables.tf, outputs.tf, provider.tf, versions.tf
+  resources/
+    digitalocean/       # Terraform manifests (one directory per provider)
+      main.tf, variables.tf, outputs.tf, provider.tf, versions.tf
 tests/
   test_providers.py     # Unit tests for region resolution
   test_state.py         # Unit tests for S3 state persistence (mocked boto3)
@@ -44,7 +45,7 @@ tests/
 
 - **CLI arguments** are defined in alphabetical order in `main.py` for easy reference.
 - **Command implementations** go in `saorsa_deploy/cmd/<command>.py`, not in `main.py`. Each command has a `cmd_<name>(args)` function. `main.py` stays thin and only does argparse + delegation.
-- **Terraform manifests** live in `resources/<provider>/`. At runtime, they are copied to `.saorsa/workspaces/<provider>-<region>/` for parallel execution.
+- **Terraform manifests** live in `saorsa_deploy/resources/<provider>/` (bundled inside the package). At runtime, they are copied to `.saorsa/workspaces/<provider>-<region>/` (relative to cwd) for parallel execution.
 - **Terraform state** is stored in AWS S3, bucket `maidsafe-org-infra-tfstate`, with per-region keys like `saorsa-deploy/do-lon1.tfstate`.
 - **DO_TOKEN** environment variable is used for Digital Ocean authentication (mapped to `TF_VAR_do_token` for Terraform, used directly for bootstrap VM API calls).
 - **AWS credentials** are required for S3 access (deployment state and Terraform backend). boto3 uses the standard credential chain: `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` env vars, `~/.aws/credentials`, or IAM roles.
@@ -75,7 +76,7 @@ uv run ruff check saorsa_deploy/ tests/
 
 ## Key Design Decisions
 
-- **Provider-per-directory Terraform structure**: Each cloud provider gets its own directory under `resources/`. TF files are copied to isolated workspace directories at runtime so parallel `terraform apply` calls don't conflict.
+- **Provider-per-directory Terraform structure**: Each cloud provider gets its own directory under `saorsa_deploy/resources/`. TF files are copied to isolated workspace directories at runtime so parallel `terraform apply` calls don't conflict.
 - **Predefined region lists**: Users specify how many regions (via `--region-counts`), not which regions. The tool picks from a predefined ordered list per provider.
 - **`--testnet` flag**: Overrides to Digital Ocean only, `lon1` region only.
 - **SSH keys**: Hardcoded as defaults in Terraform `variables.tf` (list of DO SSH key IDs).
