@@ -36,6 +36,11 @@ def cmd_infra(args):
     console.print()
 
     # Resolve regions for the main deployment
+    if args.testnet and args.region_counts:
+        console.print(
+            "[yellow]Warning: --region-counts is ignored when --testnet is used "
+            "(testnet uses a single region: lon1)[/yellow]"
+        )
     try:
         region_pairs = resolve_regions(
             region_counts=args.region_counts,
